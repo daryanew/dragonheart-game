@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5eee4">
+    <title>Dragonheart — A little fairytale arcade</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="game.js" defer></script>
+  </head>
+  <body>
+    <main class="game-shell">
+      <header class="masthead">
+        <a class="wordmark" href="#" aria-label="Dragonheart home">
+          <span class="brand-mark" aria-hidden="true">✦</span>
+          <span>little legends <span class="brand-dot">.</span></span>
+        </a>
+        <p class="edition">A FAIRYTALE ARCADE · NO. 01</p>
+        <span class="made-with">made of stardust <span aria-hidden="true">✳</span></span>
+      </header>
+
+      <section class="intro">
+        <div>
+          <p class="eyebrow"><span class="eyebrow-line"></span> A story of fire &amp; friendship</p>
+          <h1>Dragon<span class="title-heart">heart</span></h1>
+          <p class="intro-copy">A princess, her dragon, and absolutely no time for terrible princes.</p>
+        </div>
+        <div class="chapter-stamp" aria-label="Chapter one">
+          <span>CHAPTER</span>
+          <strong>01</strong>
+          <span id="location-stamp">THE WILDWOOD</span>
+        </div>
+      </section>
+
+      <section class="game-layout" aria-label="Dragonheart game">
+        <div class="adventure">
+          <div class="location-tabs" role="group" aria-label="Choose a location">
+            <button class="location-button selected" type="button" data-location="wildwood" aria-pressed="true">
+              <span aria-hidden="true">✦</span> Wildwood
+            </button>
+            <button class="location-button" type="button" data-location="castle" aria-pressed="false">
+              <span aria-hidden="true">♜</span> In the castle
+            </button>
+          </div>
+          <div class="scorebar">
+            <div class="score-item">
+              <span class="score-icon heart-icon" aria-hidden="true">♥</span>
+              <span class="score-label">HEARTS</span>
+              <strong id="lives-value">♡ ♡ ♡</strong>
+            </div>
+            <div class="score-item score-center">
+              <span class="score-label" id="location-score-label">UNWELCOME SUITORS</span>
+              <strong><span id="score-value">00</span><span class="score-divider"> / </span><span class="score-goal">12</span></strong>
+            </div>
+            <div class="score-item score-right">
+              <span class="score-label">DRAGON MOOD</span>
+              <strong id="mood-value"><span class="mood-dot"></span> PLAYFUL</strong>
+            </div>
+          </div>
+          <div class="charge-meter" aria-label="Dragonfire charge">
+            <div class="charge-copy">
+              <span id="charge-label">HOLD SPACE · 3S DRAGONFIRE</span>
+              <strong id="charge-time">0.0 / 3.0s</strong>
+            </div>
+            <div class="charge-track" aria-hidden="true"><span id="charge-fill"></span></div>
+          </div>
+
+          <div class="arena">
+          <canvas id="game-canvas" width="960" height="550" aria-label="A dragon's first-person view defending the princess's castle from approaching mounted knights and princes"></canvas>
+            <div class="game-overlay" id="game-overlay">
+              <div class="overlay-card">
+                <span class="overlay-sparkle" aria-hidden="true">✳</span>
+                <p class="overlay-kicker" id="overlay-kicker">ONCE UPON A TIME...</p>
+                <h2 id="overlay-title">Not all knights<br>are <em>charming.</em></h2>
+                <p class="overlay-copy" id="overlay-copy">Princess Poppy is safe in her castle. Aim your dragonfire at the knights and princes charging through the gate.</p>
+                <button class="start-button" id="start-button" type="button">Let’s fly <span aria-hidden="true">↗</span></button>
+                <span class="overlay-hint">WASD to aim · tap SPACE to fire · hold 3 seconds to unleash dragonfire</span>
+              </div>
+            </div>
+            <div class="toast" id="game-toast" aria-live="polite"></div>
+          </div>
+
+          <div class="arena-caption">
+            <span><span class="caption-sparkle">✦</span> <span id="location-caption">THE WILDWOOD IS NOT A DATING APP</span></span>
+            <span>EST. SOMEWHERE AFTER “HAPPILY EVER AFTER”</span>
+          </div>
+        </div>
+
+        <aside class="side-panel">
+          <div class="panel-heading">
+            <p class="eyebrow">YOUR VERY BEST FRIEND</p>
+            <h2>Choose a<br><em>dragon breath</em></h2>
+          </div>
+          <p class="panel-description">Every good dragon has a signature. Pick one to help Poppy send those suitors packing.</p>
+
+          <div class="weapon-list" role="group" aria-label="Choose dragon weapon">
+            <button class="weapon-card selected" type="button" data-weapon="ember" aria-pressed="true">
+              <span class="weapon-art ember-art" aria-hidden="true"><span></span></span>
+              <span class="weapon-text"><strong>Ember breath</strong><small>Classic · quick &amp; warm</small></span>
+              <span class="weapon-check" aria-hidden="true">✓</span>
+            </button>
+            <button class="weapon-card" type="button" data-weapon="frost" aria-pressed="false">
+              <span class="weapon-art frost-art" aria-hidden="true"><span></span></span>
+              <span class="weapon-text"><strong>Frost bloom</strong><small>Chilly · slows them down</small></span>
+              <span class="weapon-check" aria-hidden="true">✓</span>
+            </button>
+            <button class="weapon-card" type="button" data-weapon="starlight" aria-pressed="false">
+              <span class="weapon-art star-art" aria-hidden="true"><span>✦</span></span>
+              <span class="weapon-text"><strong>Stardust</strong><small>Cosmic · passes through</small></span>
+              <span class="weapon-check" aria-hidden="true">✓</span>
+            </button>
+          </div>
+
+          <div class="controls-card">
+            <div class="controls-title">
+              <span class="controls-sparkle" aria-hidden="true">✧</span>
+              <strong>THE FLIGHT MANUAL</strong>
+            </div>
+            <div class="key-row">
+              <div class="key-grid" aria-label="WASD movement keys">
+                <kbd class="key-up">W</kbd>
+                <kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>
+              </div>
+              <span id="movement-description">move your dragon</span>
+            </div>
+            <div class="key-row">
+              <kbd class="space-key">SPACE</kbd>
+              <span id="space-description">hold to fire your homing breath</span>
+            </div>
+            <div class="key-row">
+              <kbd class="esc-key">ESC</kbd>
+              <span>take a little breather</span>
+            </div>
+          </div>
+
+          <p class="side-note"><span aria-hidden="true">☼</span> No prince required. Ever.</p>
+        </aside>
+      </section>
+
+      <footer class="page-footer">
+        <span>BE BRAVE, BE KIND, KEEP YOUR OWN CASTLE.</span>
+        <span>© THE WILDWOOD FRIENDSHIP SOCIETY</span>
+      </footer>
+    </main>
+  </body>
+</html>
