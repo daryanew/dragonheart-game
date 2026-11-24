@@ -376,6 +376,128 @@ h1 {
   pointer-events: none;
 }
 
+.touch-controls {
+  position: absolute;
+  z-index: 4;
+  inset: auto 8px 8px;
+  display: none;
+  align-items: flex-end;
+  justify-content: space-between;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease, visibility 180ms ease;
+}
+
+.touch-controls.active {
+  visibility: visible;
+  opacity: 1;
+}
+
+.touch-dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 44px);
+  grid-template-rows: repeat(2, 44px);
+  gap: 4px;
+}
+
+.touch-control,
+.touch-fire,
+.touch-pause {
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  color: #66566d;
+  background: rgba(252, 247, 240, 0.84);
+  box-shadow: 0 3px 12px rgba(47, 42, 63, 0.2);
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.touch-control {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  padding: 0;
+  border-radius: 12px;
+  font-size: 15px;
+}
+
+.touch-control[data-control="up"] {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.touch-control[data-control="left"] {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.touch-control[data-control="down"] {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.touch-control[data-control="right"] {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.touch-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+}
+
+.touch-pause {
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 9px;
+}
+
+.touch-fire {
+  display: flex;
+  width: 76px;
+  height: 76px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 0;
+  border-radius: 50%;
+  color: #fffaf4;
+  background: linear-gradient(145deg, #c78580, #835e7e);
+  font-size: 11px;
+}
+
+.touch-fire span {
+  color: rgba(255, 250, 244, 0.82);
+  font-size: 7px;
+  letter-spacing: 0.07em;
+}
+
+.touch-control.pressed,
+.touch-fire.pressed,
+.touch-pause:active {
+  transform: scale(0.94);
+  background-color: #e7d6d3;
+}
+
+.touch-fire.pressed {
+  background: linear-gradient(145deg, #df987d, #9b6b88);
+}
+
+.touch-control:focus-visible,
+.touch-fire:focus-visible,
+.touch-pause:focus-visible {
+  outline: 2px solid #fff4bf;
+  outline-offset: 2px;
+}
+
 .overlay-card {
   position: relative;
   width: min(365px, 90%);
@@ -840,6 +962,16 @@ h1 {
 
   .arena-caption {
     font-size: 6px;
+  }
+
+  .touch-controls {
+    display: flex;
+  }
+}
+
+@media (pointer: coarse) {
+  .touch-controls {
+    display: flex;
   }
 }
 

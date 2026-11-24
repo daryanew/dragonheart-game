@@ -77,6 +77,21 @@
                 <span class="overlay-hint">WASD to aim · tap SPACE to fire · hold 3 seconds to unleash dragonfire</span>
               </div>
             </div>
+            <div class="touch-controls" id="touch-controls" role="group" aria-label="Touch controls" aria-hidden="true">
+              <div class="touch-dpad" id="touch-dpad" role="group" aria-label="Move the dragon">
+                <button class="touch-control" type="button" data-control="up" aria-label="Up" aria-pressed="false">▲</button>
+                <button class="touch-control" type="button" data-control="left" aria-label="Left" aria-pressed="false">◀</button>
+                <button class="touch-control" type="button" data-control="down" aria-label="Down" aria-pressed="false">▼</button>
+                <button class="touch-control" type="button" data-control="right" aria-label="Right" aria-pressed="false">▶</button>
+              </div>
+              <div class="touch-actions">
+                <button class="touch-pause" id="touch-pause" type="button" aria-label="Pause game">Ⅱ Pause</button>
+                <button class="touch-fire" id="touch-fire" type="button" data-control="fire" aria-label="Hold to fire homing breath" aria-pressed="false">
+                  <strong>FIRE</strong>
+                  <span id="touch-fire-hint">HOLD</span>
+                </button>
+              </div>
+            </div>
             <div class="toast" id="game-toast" aria-live="polite"></div>
           </div>
 

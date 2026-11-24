@@ -4,6 +4,11 @@
   const canvas = document.querySelector("#game-canvas");
   const ctx = canvas.getContext("2d");
   const overlay = document.querySelector("#game-overlay");
+  const touchControls = document.querySelector("#touch-controls");
+  const touchDpad = document.querySelector("#touch-dpad");
+  const touchFire = document.querySelector("#touch-fire");
+  const touchFireHint = document.querySelector("#touch-fire-hint");
+  const touchControlButtons = [...touchControls.querySelectorAll("[data-control]")];
   const overlayKicker = document.querySelector("#overlay-kicker");
   const overlayTitle = document.querySelector("#overlay-title");
   const overlayCopy = document.querySelector("#overlay-copy");
@@ -1240,6 +1245,11 @@
     spaceDescription.textContent = wildwood
       ? "hold to fire your homing breath"
       : "tap: fire · hold 3s: dragonfire";
+    touchDpad.setAttribute("aria-label", wildwood ? "Move the dragon" : "Aim the dragon");
+    touchFire.setAttribute("aria-label", wildwood
+      ? "Hold to fire homing breath"
+      : "Tap to fire or hold for 3 seconds to unleash dragonfire");
+    touchFireHint.textContent = wildwood ? "HOLD" : "HOLD 3S";
     canvas.setAttribute("aria-label", wildwood
       ? "Princess Poppy riding a dragon through the Wildwood as knights approach"
       : "A dragon's first-person view defending the princess's castle from approaching mounted knights and princes");
@@ -1274,6 +1284,7 @@
     toastTimer = 0;
     overlay.classList.remove("hidden");
     startButton.innerHTML = "Let’s fly <span aria-hidden=\"true\">↗</span>";
+    updateTouchControls();
     updateHud();
     updateChargeHud();
     updateLocationDetails();
@@ -1333,6 +1344,7 @@
     chargeBlastTimer = 0;
     state = "playing";
     overlay.classList.add("hidden");
+    updateTouchControls();
     updateHud();
     updateChargeHud();
     startButton.blur();
@@ -1362,6 +1374,7 @@
         : "The castle will be here when you’re ready. Perhaps choose a different dragon breath this time?";
       startButton.innerHTML = "Try again <span aria-hidden=\"true\">↗</span>";
     }
+    updateTouchControls();
   }
 
   function finishGame(won) {
@@ -1373,6 +1386,7 @@
     chargeHeld = false;
     chargeTime = 0;
     updateChargeHud();
+    updateTouchControls();
     if (won) spawnFireworks();
   }
 
@@ -1385,10 +1399,59 @@
       chargeTime = 0;
       updateChargeHud();
       showOverlay("pause");
+      updateTouchControls();
     } else if (state === "paused") {
       state = "playing";
       overlay.classList.add("hidden");
+      updateTouchControls();
     }
+  }
+
+  function updateTouchControls() {
+    const active = state === "playing";
+    touchControls.classList.toggle("active", active);
+    touchControls.setAttribute("aria-hidden", String(!active));
+    if (!active) {
+      touchControlButtons.forEach((button) => {
+        button.classList.remove("pressed");
+        button.setAttribute("aria-pressed", "false");
+      });
+    }
+  }
+
+  function pressControl(key, repeat = false) {
+    if (key === " ") {
+      if (state === "playing" && location === "wildwood") {
+        if (!repeat && !keys.has(" ")) fire();
+        keys.add(" ");
+      } else if (state === "playing" && !repeat && !spaceConsumed) {
+        chargeHeld = true;
+        chargeTime = 0;
+        updateChargeHud();
+      }
+      return;
+    }
+    keys.add(key);
+  }
+
+  function releaseControl(key) {
+    if (key !== " ") {
+      keys.delete(key);
+      return;
+    }
+    keys.delete(" ");
+    if (chargeHeld) {
+      chargeHeld = false;
+      if (chargeTime < chargeDuration) fire();
+      chargeTime = 0;
+      updateChargeHud();
+    }
+    spaceConsumed = false;
+  }
+
+  function setTouchButtonPressed(button, pressed) {
+    button.classList.toggle("pressed", pressed);
+    button.setAttribute("aria-pressed", String(pressed));
   }
 
   function render(time) {
@@ -1461,6 +1524,27 @@
     button.addEventListener("click", () => selectLocation(button.dataset.location));
   });
 
+  touchControlButtons.forEach((button) => {
+    const key = { up: "w", left: "a", down: "s", right: "d", fire: " " }[button.dataset.control];
+    const release = (event) => {
+      event.preventDefault();
+      setTouchButtonPressed(button, false);
+      releaseControl(key);
+    };
+    button.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      if (state !== "playing") return;
+      button.setPointerCapture(event.pointerId);
+      setTouchButtonPressed(button, true);
+      pressControl(key);
+    });
+    button.addEventListener("pointerup", release);
+    button.addEventListener("pointercancel", release);
+    button.addEventListener("lostpointercapture", release);
+  });
+
+  document.querySelector("#touch-pause").addEventListener("click", togglePause);
+
   document.addEventListener("keydown", (event) => {
     if (event.repeat && (event.code === "Escape" || event.code === "Enter")) return;
     if (event.code === "Escape") {
@@ -1474,38 +1558,24 @@
     }
     if (event.code === "Space") {
       event.preventDefault();
-      if (state === "playing" && location === "wildwood") {
-        if (!event.repeat && !keys.has(" ")) fire();
-        keys.add(" ");
-      } else if (state === "playing" && !event.repeat && !spaceConsumed) {
-        chargeHeld = true;
-        chargeTime = 0;
-        updateChargeHud();
-      }
+      pressControl(" ", event.repeat);
       return;
     }
     const key = movementKeys[event.code];
     if (key) {
       event.preventDefault();
-      keys.add(key);
+      pressControl(key, event.repeat);
     }
   });
 
   document.addEventListener("keyup", (event) => {
     if (event.code === "Space") {
       event.preventDefault();
-      keys.delete(" ");
-      if (chargeHeld) {
-        chargeHeld = false;
-        if (chargeTime < chargeDuration) fire();
-        chargeTime = 0;
-        updateChargeHud();
-      }
-      spaceConsumed = false;
+      releaseControl(" ");
       return;
     }
     const key = movementKeys[event.code];
-    if (key) keys.delete(key);
+    if (key) releaseControl(key);
   });
   window.addEventListener("blur", () => {
     keys.clear();
@@ -1513,8 +1583,10 @@
     spaceConsumed = false;
     chargeTime = 0;
     updateChargeHud();
+    updateTouchControls();
   });
 
+  updateTouchControls();
   updateLocationDetails();
   updateHud();
   updateChargeHud();
