@@ -1687,3 +1687,11 @@ body.telegram-game {
     width: 100%;
   }
 }
+
+@media (pointer: fine) {
+  body.telegram-game {
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: auto;
+  }
+}
