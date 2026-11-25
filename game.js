@@ -1264,8 +1264,8 @@
       ? "Not all knights<br>are <em>charming.</em>"
       : "The castle gate<br>is <em>under siege.</em>";
     overlayCopy.textContent = wildwood
-      ? "Help Princess Poppy and her dragon keep the Wildwood safe from pushy princes and their very shiny armor."
-      : "Princess Poppy is safe in her castle. Aim your dragonfire at the mounted knights and princes charging through the gate.";
+      ? "Help Princess Poppy and her dragon keep the Wildwood safe. Clear 12 suitors to finish Level 1; each new level adds 2 more."
+      : "Defend the castle from mounted knights and princes. Clear 12 riders to finish Level 1; each new level adds 2 more.";
     overlayHint.textContent = hasTouchInput
       ? wildwood
         ? "Touch & drag to fly · hold FIRE to breathe"
