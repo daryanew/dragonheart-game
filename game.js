@@ -43,13 +43,12 @@
   const ratingModal = document.querySelector("#rating-modal");
   const ratingOpenButton = document.querySelector("#rating-open");
   const ratingCloseButton = document.querySelector("#rating-close");
+  const globalRatingEndpoint = document.querySelector('meta[name="global-rating-endpoint"]').content.trim();
   const width = canvas.width;
   const height = canvas.height;
   const chargeDuration = 3;
   const chargeBlastDuration = 1.8;
   const movementKeys = { KeyW: "w", KeyA: "a", KeyS: "s", KeyD: "d" };
-  const leaderboardStorageKey = "dragonheart.leaderboards.v1";
-  const playerIdStorageKey = "dragonheart.player-id.v1";
   const playerNameStorageKey = "dragonheart.player-name.v1";
 
   const weapons = {
@@ -84,7 +83,7 @@
   let levelsCompleted = 0;
   let levelGoal = 12;
   let runStats = { destroyed: 0, shots: 0, weapons: {} };
-  let localPlayerId = null;
+  let leaderboardRequestId = 0;
   let spawnTimer = 0.35;
   let chargeHeld = false;
   let spaceConsumed = false;
@@ -1381,7 +1380,7 @@
       return window.localStorage.getItem(key);
     } catch (error) {
       console.error(`Could not read ${key} from local storage.`, error);
-      announceToast("Local scores are unavailable in this browser.");
+      announceToast("Your saved preferences are unavailable in this browser.");
       return null;
     }
   }
@@ -1392,135 +1391,114 @@
       return true;
     } catch (error) {
       console.error(`Could not save ${key} to local storage.`, error);
-      announceToast("Your local score could not be saved.");
+      announceToast("Your preference could not be saved.");
       return false;
     }
   }
 
-  function getPlayerId() {
-    if (localPlayerId) return localPlayerId;
-    localPlayerId = readStoredValue(playerIdStorageKey);
-    if (!localPlayerId) {
-      localPlayerId = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`;
-      writeStoredValue(playerIdStorageKey, localPlayerId);
-    }
-    return localPlayerId;
-  }
-
-  function isLeaderboardEntry(entry) {
-    return entry
-      && typeof entry.playerId === "string"
-      && typeof entry.name === "string"
-      && Number.isInteger(entry.levelsCompleted)
-      && Number.isInteger(entry.destroyed)
-      && Number.isInteger(entry.shots)
-      && typeof entry.weapon === "string";
-  }
-
-  function readLeaderboardData() {
-    const stored = readStoredValue(leaderboardStorageKey);
-    if (!stored) return { wildwood: [], castle: [] };
-    try {
-      const parsed = JSON.parse(stored);
-      return {
-        wildwood: Array.isArray(parsed.wildwood) ? sortLeaderboardEntries(parsed.wildwood.filter(isLeaderboardEntry)) : [],
-        castle: Array.isArray(parsed.castle) ? sortLeaderboardEntries(parsed.castle.filter(isLeaderboardEntry)) : [],
-      };
-    } catch (error) {
-      console.error("Could not parse saved Dragonheart leaderboard data.", error);
-      announceToast("Saved scores could not be read.");
-      return { wildwood: [], castle: [] };
-    }
-  }
-
-  function sortLeaderboardEntries(entries) {
-    return entries.sort((a, b) => b.levelsCompleted - a.levelsCompleted
-      || b.destroyed - a.destroyed
-      || a.shots - b.shots
-      || a.name.localeCompare(b.name)).slice(0, 5);
-  }
-
-  function isBetterScore(candidate, current) {
-    return candidate.levelsCompleted > current.levelsCompleted
-      || (candidate.levelsCompleted === current.levelsCompleted && candidate.destroyed > current.destroyed)
-      || (candidate.levelsCompleted === current.levelsCompleted
-        && candidate.destroyed === current.destroyed
-        && candidate.shots < current.shots);
-  }
-
-  function saveLeaderboard() {
+  async function saveLeaderboard() {
     if (levelsCompleted === 0) return;
-    const data = readLeaderboardData();
-    const entries = data[location];
-    const playerId = getPlayerId();
-    const name = playerNameInput.value.trim().slice(0, 24) || "A brave dragon";
-    const mostUsedWeapon = Object.entries(runStats.weapons)
-      .sort((a, b) => b[1] - a[1])[0]?.[0] || "none yet";
-    const candidate = {
-      playerId,
-      name,
-      levelsCompleted,
-      destroyed: runStats.destroyed,
-      shots: runStats.shots,
-      weapon: mostUsedWeapon,
-    };
-    const existingIndex = entries.findIndex((entry) => entry.playerId === playerId);
-    if (existingIndex >= 0) {
-      const current = entries[existingIndex];
-      entries[existingIndex] = isBetterScore(candidate, current)
-        ? candidate
-        : { ...current, name };
-    } else {
-      entries.push(candidate);
-    }
-    data[location] = sortLeaderboardEntries(entries);
-    writeStoredValue(leaderboardStorageKey, JSON.stringify(data));
-    renderLeaderboard();
-  }
-
-  function renderLeaderboard() {
-    const entries = readLeaderboardData()[leaderboardLocation];
-    leaderboardList.replaceChildren();
-    if (!entries.length) {
-      const empty = document.createElement("li");
-      empty.className = "leaderboard-empty";
-      empty.textContent = "Your first little legend starts here.";
-      leaderboardList.append(empty);
+    if (!globalRatingEndpoint) {
+      announceToast("Global rating setup is required before scores can be shared.");
       return;
     }
-    entries.forEach((entry, index) => {
-      const item = document.createElement("li");
-      item.className = "leaderboard-entry";
-      const rank = document.createElement("span");
-      rank.className = "leaderboard-rank";
-      rank.textContent = String(index + 1).padStart(2, "0");
-      const details = document.createElement("span");
-      details.className = "leaderboard-details";
-      const name = document.createElement("strong");
-      name.textContent = entry.name;
-      const stats = document.createElement("small");
-      const levels = `${entry.levelsCompleted} ${entry.levelsCompleted === 1 ? "level" : "levels"}`;
-      stats.textContent = `${levels} · ${entry.destroyed} suitors / ${entry.shots} shots · ${entry.weapon}`;
-      details.append(name, stats);
-      item.append(rank, details);
-      leaderboardList.append(item);
-    });
+    const initData = window.Telegram?.WebApp?.initData;
+    if (!initData) {
+      announceToast("Open the game in Telegram to submit a global score.");
+      return;
+    }
+    const mostUsedWeapon = Object.entries(runStats.weapons)
+      .sort((a, b) => b[1] - a[1])[0]?.[0] || "none yet";
+    try {
+      const response = await fetch(globalRatingEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          initData,
+          location,
+          name: playerNameInput.value.trim().slice(0, 24),
+          levelsCompleted,
+          destroyed: runStats.destroyed,
+          shots: runStats.shots,
+          weapon: mostUsedWeapon,
+        }),
+      });
+      if (!response.ok) throw new Error(`Score submission failed (${response.status}).`);
+      announceToast("Your score was added to the global rating!");
+      if (!ratingModal.hidden) renderLeaderboard();
+    } catch (error) {
+      console.error("Could not submit score to the global rating.", error);
+      announceToast("Your global score could not be submitted. Try again later.");
+    }
   }
 
-  function updatePlayerName() {
-    writeStoredValue(playerNameStorageKey, playerNameInput.value.trim().slice(0, 24));
-    const playerId = getPlayerId();
-    const data = readLeaderboardData();
-    let updated = false;
-    for (const entries of Object.values(data)) {
-      const entry = entries.find((item) => item.playerId === playerId);
-      if (entry) {
-        entry.name = playerNameInput.value.trim().slice(0, 24) || "A brave dragon";
-        updated = true;
-      }
+  async function renderLeaderboard() {
+    const requestId = ++leaderboardRequestId;
+    leaderboardList.replaceChildren();
+    const message = (text) => {
+      const item = document.createElement("li");
+      item.className = "leaderboard-empty";
+      item.textContent = text;
+      leaderboardList.replaceChildren(item);
+    };
+    if (!globalRatingEndpoint) {
+      message("Global rating setup is not complete yet.");
+      return;
     }
-    if (updated) writeStoredValue(leaderboardStorageKey, JSON.stringify(data));
-    renderLeaderboard();
+    message("Loading global scores…");
+    try {
+      const url = new URL(globalRatingEndpoint);
+      url.searchParams.set("location", leaderboardLocation);
+      const response = await fetch(url, { cache: "no-store" });
+      if (!response.ok) throw new Error(`Leaderboard request failed (${response.status}).`);
+      const result = await response.json();
+      if (!Array.isArray(result.entries)) throw new Error("Leaderboard response is malformed.");
+      if (requestId !== leaderboardRequestId) return;
+      leaderboardList.replaceChildren();
+      if (!result.entries.length) {
+        message("No global scores yet. Complete a level to claim the first spot.");
+        return;
+      }
+      result.entries.forEach((entry, index) => {
+        const item = document.createElement("li");
+        item.className = "leaderboard-entry";
+        const rank = document.createElement("span");
+        rank.className = "leaderboard-rank";
+        rank.textContent = String(index + 1).padStart(2, "0");
+        const details = document.createElement("span");
+        details.className = "leaderboard-details";
+        const name = document.createElement("strong");
+        name.textContent = entry.name;
+        const stats = document.createElement("small");
+        const levels = `${entry.levelsCompleted} ${entry.levelsCompleted === 1 ? "level" : "levels"}`;
+        stats.textContent = `${levels} · ${entry.destroyed} suitors / ${entry.shots} shots · ${entry.weapon}`;
+        details.append(name, stats);
+        item.append(rank, details);
+        leaderboardList.append(item);
+      });
+    } catch (error) {
+      console.error("Could not load the global rating.", error);
+      if (requestId === leaderboardRequestId) message("Global rating is temporarily unavailable.");
+    }
+  }
+
+  async function updatePlayerName() {
+    const name = playerNameInput.value.trim().slice(0, 24);
+    writeStoredValue(playerNameStorageKey, name);
+    const initData = window.Telegram?.WebApp?.initData;
+    if (!globalRatingEndpoint || !initData) return;
+    try {
+      const response = await fetch(globalRatingEndpoint, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ initData, name }),
+      });
+      if (!response.ok) throw new Error(`Name update failed (${response.status}).`);
+      if (!ratingModal.hidden) renderLeaderboard();
+    } catch (error) {
+      console.error("Could not update the global rating name.", error);
+      announceToast("Your global rating name could not be updated.");
+    }
   }
 
   function announceToast(message) {
@@ -1717,6 +1695,7 @@
     ratingPausedGame = state === "playing";
     if (ratingPausedGame) togglePause();
     ratingModal.hidden = false;
+    renderLeaderboard();
     ratingCloseButton.focus();
   }
 
@@ -1895,7 +1874,6 @@
   updateLocationDetails();
   updateHud();
   updateChargeHud();
-  renderLeaderboard();
   startGame();
   requestAnimationFrame(frame);
 })();

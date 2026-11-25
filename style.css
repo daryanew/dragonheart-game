@@ -1424,7 +1424,7 @@ body.telegram-game {
 
 .telegram-shell .touch-controls {
   min-height: 0;
-  display: none;
+  display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 6px;
@@ -1432,10 +1432,17 @@ body.telegram-game {
   padding: 5px 2px max(5px, env(safe-area-inset-bottom));
   border: 0;
   background: transparent;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease, visibility 180ms ease;
 }
 
 .telegram-shell .touch-controls.active {
   display: flex;
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .telegram-shell .touch-drag-hint {

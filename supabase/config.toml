@@ -1,0 +1,4 @@
+project_id = "dragonheart-global-rating"
+
+[functions.global-rating]
+verify_jwt = false
