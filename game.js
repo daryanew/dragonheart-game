@@ -40,6 +40,9 @@
   const playerNameInput = document.querySelector("#player-name");
   const leaderboardList = document.querySelector("#leaderboard-list");
   const leaderboardButtons = [...document.querySelectorAll(".leaderboard-tab")];
+  const ratingModal = document.querySelector("#rating-modal");
+  const ratingOpenButton = document.querySelector("#rating-open");
+  const ratingCloseButton = document.querySelector("#rating-close");
   const width = canvas.width;
   const height = canvas.height;
   const chargeDuration = 3;
@@ -71,6 +74,7 @@
   let weapon = "ember";
   let location = "wildwood";
   let leaderboardLocation = "wildwood";
+  let ratingPausedGame = false;
   let player = { x: 168, y: 290, lives: 3, invulnerable: 0 };
   let enemies = [];
   let projectiles = [];
@@ -95,6 +99,11 @@
   let touchDragPointerId = null;
   let touchDragStartX = 0;
   let touchDragStartY = 0;
+
+  if (window.Telegram?.WebApp) {
+    window.Telegram.WebApp.ready();
+    window.Telegram.WebApp.expand();
+  }
 
   function roundedRect(x, y, w, h, radius) {
     ctx.beginPath();
@@ -1628,7 +1637,7 @@
   }
 
   function updateTouchControls() {
-    const active = state === "playing" && hasTouchInput;
+    const active = state === "playing";
     touchControls.classList.toggle("active", active);
     touchControls.setAttribute("aria-hidden", String(!active));
     if (!active) {
@@ -1702,6 +1711,21 @@
     if (event.pointerId !== touchDragPointerId) return;
     ["w", "a", "s", "d"].forEach((key) => keys.delete(key));
     touchDragPointerId = null;
+  }
+
+  function openRating() {
+    ratingPausedGame = state === "playing";
+    if (ratingPausedGame) togglePause();
+    ratingModal.hidden = false;
+    ratingCloseButton.focus();
+  }
+
+  function closeRating() {
+    if (ratingModal.hidden) return;
+    ratingModal.hidden = true;
+    if (ratingPausedGame && state === "paused") togglePause();
+    ratingPausedGame = false;
+    ratingOpenButton.focus();
   }
 
   function render(time) {
@@ -1798,7 +1822,7 @@
       releaseControl(key);
     };
     button.addEventListener("pointerdown", (event) => {
-      if (!hasTouchInput || event.pointerType !== "touch") return;
+      if (event.button !== 0) return;
       event.preventDefault();
       event.stopPropagation();
       if (state !== "playing") return;
@@ -1818,11 +1842,18 @@
   arena.addEventListener("lostpointercapture", endTouchDrag);
 
   document.querySelector("#touch-pause").addEventListener("click", togglePause);
+  ratingOpenButton.addEventListener("click", openRating);
+  ratingCloseButton.addEventListener("click", closeRating);
+  ratingModal.querySelector("[data-rating-close]").addEventListener("click", closeRating);
 
   document.addEventListener("keydown", (event) => {
     if (event.repeat && (event.code === "Escape" || event.code === "Enter")) return;
     if (event.code === "Escape") {
       event.preventDefault();
+      if (!ratingModal.hidden) {
+        closeRating();
+        return;
+      }
       if (state === "playing" || state === "paused") togglePause();
       return;
     }
@@ -1865,5 +1896,6 @@
   updateHud();
   updateChargeHud();
   renderLeaderboard();
+  startGame();
   requestAnimationFrame(frame);
 })();
