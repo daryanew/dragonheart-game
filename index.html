@@ -11,8 +11,39 @@
   </head>
   <body class="telegram-game">
     <main class="game-shell telegram-shell">
+      <header class="masthead">
+        <a class="wordmark" href="#" aria-label="Dragonheart home">
+          <span class="brand-mark" aria-hidden="true">✦</span>
+          <span>little legends <span class="brand-dot">.</span></span>
+        </a>
+        <p class="edition">A FAIRYTALE ARCADE · NO. 01</p>
+        <span class="made-with">made of stardust <span aria-hidden="true">✳</span></span>
+      </header>
+
+      <section class="intro">
+        <div>
+          <p class="eyebrow"><span class="eyebrow-line"></span> A story of fire &amp; friendship</p>
+          <h1>Dragon<span class="title-heart">heart</span></h1>
+          <p class="intro-copy">A princess, her dragon, and absolutely no time for terrible princes.</p>
+        </div>
+        <div class="chapter-stamp" aria-label="Chapter one">
+          <span>CHAPTER</span>
+          <strong>01</strong>
+          <span id="location-stamp">THE WILDWOOD</span>
+        </div>
+      </section>
+
       <section class="game-layout" aria-label="Dragonheart game">
         <div class="adventure">
+          <div class="location-tabs" role="group" aria-label="Choose a location">
+            <button class="location-button selected" type="button" data-location="wildwood" aria-pressed="true">
+              <span aria-hidden="true">✦</span> Wildwood
+            </button>
+            <button class="location-button" type="button" data-location="castle" aria-pressed="false">
+              <span aria-hidden="true">♜</span> In the castle
+            </button>
+          </div>
+
           <div class="scorebar">
             <div class="score-item score-left">
               <button class="touch-pause" id="touch-pause" type="button" aria-label="Pause game">Ⅱ</button>
@@ -83,7 +114,6 @@
       </section>
 
       <div class="telegram-helpers" hidden>
-        <span id="location-stamp">THE WILDWOOD</span>
         <span id="location-caption">THE WILDWOOD IS NOT A DATING APP</span>
         <div class="key-grid"><kbd class="key-up">W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></div>
         <kbd class="space-key">SPACE</kbd>

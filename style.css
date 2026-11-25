@@ -1233,13 +1233,88 @@ body.telegram-game {
   padding: 8px;
 }
 
-.telegram-shell .masthead,
-.telegram-shell .intro,
-.telegram-shell .location-tabs,
 .telegram-shell .arena-caption,
 .telegram-shell .side-panel,
 .telegram-shell .page-footer {
   display: none;
+}
+
+.telegram-shell .masthead {
+  height: 46px;
+  flex: 0 0 46px;
+  border-bottom-color: rgba(140, 126, 137, 0.14);
+}
+
+.telegram-shell .wordmark {
+  gap: 7px;
+  font-size: 13px;
+}
+
+.telegram-shell .brand-mark {
+  width: 22px;
+  height: 22px;
+  font-size: 12px;
+}
+
+.telegram-shell .made-with {
+  font-size: 7px;
+}
+
+.telegram-shell .intro {
+  min-height: 0;
+  flex: 0 0 auto;
+  align-items: center;
+  padding: 7px 2px 9px;
+}
+
+.telegram-shell .intro .eyebrow {
+  gap: 5px;
+  margin-bottom: 3px;
+  font-size: 7px;
+}
+
+.telegram-shell .intro h1 {
+  margin-bottom: 0;
+  font-size: clamp(29px, 7vw, 39px);
+}
+
+.telegram-shell .intro-copy {
+  max-width: 290px;
+  margin-top: 4px;
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.telegram-shell .chapter-stamp {
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  margin: 0 7px 0 12px;
+}
+
+.telegram-shell .chapter-stamp strong {
+  font-size: 18px;
+}
+
+.telegram-shell .chapter-stamp span {
+  font-size: 5px;
+}
+
+.telegram-shell .location-tabs {
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 0 2px;
+}
+
+.telegram-shell .location-button {
+  min-height: 34px;
+  flex: 1;
+  justify-content: center;
+  border-radius: 20px;
+  font-size: 10px;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .telegram-shell .game-layout {
@@ -1567,17 +1642,25 @@ body.telegram-game {
   .telegram-shell .adventure {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(190px, 230px);
-    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
     align-items: center;
     gap: 7px 12px;
   }
 
+  .telegram-shell .location-tabs {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    padding-bottom: 0;
+  }
+
   .telegram-shell .scorebar {
     grid-column: 1 / -1;
+    grid-row: 2;
   }
 
   .telegram-shell .arena {
     grid-column: 1;
+    grid-row: 3;
     justify-self: center;
     width: min(100%, calc((100dvh - 78px) * 960 / 550));
     flex: none;
@@ -1585,7 +1668,7 @@ body.telegram-game {
 
   .telegram-shell .touch-controls {
     grid-column: 2;
-    grid-row: 2;
+    grid-row: 3;
     justify-content: center;
   }
 
